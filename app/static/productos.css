@@ -1,0 +1,166 @@
+/* ==========================================================
+   ADMIN · PRODUCTOS (minimalista · usa las variables de index.html)
+   Incluye: tabla, modo etiquetas y vista previa A4.
+   (El diseño de las etiquetas en sí vive en productos.js → ETIQ_CSS,
+    así la vista previa y el archivo impreso salen idénticos.)
+   ========================================================== */
+#view-admin-productos main { overflow: visible; gap: 16px }
+
+/* ---------- Barra: buscador | categoría | mostrar | etiquetas | nuevo (todo a 46 px) ---------- */
+.pr-bar { display: flex; align-items: center; gap: 12px }
+.pr-search { flex: 1; min-width: 0 }
+#view-admin-productos .pr-search input {
+  height: 46px; padding: 0 16px 0 46px; font-size: 15px; border-radius: 14px;
+  background: var(--card); border: 2px solid transparent; box-shadow: var(--shadow);
+}
+#view-admin-productos .pr-search input:focus { border-color: var(--acc) }
+#view-admin-productos .pr-search .ic { left: 18px; font-size: 15px }
+
+.pr-sel {
+  appearance: none; -webkit-appearance: none; font: inherit; color: var(--txt); cursor: pointer;
+  height: 46px; width: 210px; padding: 0 40px 0 16px; border-radius: 14px;
+  border: 2px solid transparent; box-shadow: var(--shadow); background-color: var(--card);
+  background-image: linear-gradient(45deg, transparent 50%, var(--mut) 50%), linear-gradient(135deg, var(--mut) 50%, transparent 50%);
+  background-position: calc(100% - 22px) 19px, calc(100% - 16px) 19px;
+  background-size: 6px 6px; background-repeat: no-repeat; outline: none;
+}
+.pr-sel:focus { border-color: var(--acc) }
+.pr-sel option { background: var(--card); color: var(--txt) }
+.pr-nuevo, .pr-etq { height: 46px; padding: 0 22px; border-radius: 14px; font-weight: 700; font-size: 15px; white-space: nowrap }
+.pr-etq { display: flex; align-items: center; gap: 8px; font-weight: 600; background: var(--card); box-shadow: var(--shadow) }
+.pr-etq:hover { background: var(--acc-soft) }
+.pr-etq.go { background: var(--acc); color: #fff; font-weight: 700; box-shadow: none }
+[data-theme="dark"] .pr-etq.go { color: #1b1a20 }
+
+/* ---------- Tarjeta con la lista ---------- */
+.pr-card {
+  --cols: 130px minmax(0, 1fr) 180px 130px 90px 76px;
+  flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;
+  transition: box-shadow .25s;
+}
+.pr-scroll { flex: 1; min-height: 0; overflow-y: auto; scrollbar-gutter: stable }
+
+.pr-head, .pr-row {
+  display: grid; grid-template-columns: var(--cols); column-gap: 16px; align-items: center;
+  padding: 0 14px 0 28px;
+}
+.pr-head {
+  position: sticky; top: 0; z-index: 2; height: 52px; background: var(--card);
+  border-bottom: 1px solid var(--line); color: var(--mut); font-size: 13px; font-weight: 600;
+}
+.pr-head .ord { cursor: pointer; user-select: none; white-space: nowrap }
+.pr-head .ord:hover { color: var(--txt) }
+.pr-head .ord.on { color: var(--acc-txt) }
+.pr-head .ord i { font-style: normal; font-size: 9px; margin-left: 6px; vertical-align: 1px }
+.pr-head .r, .pr-row .r { text-align: right; justify-content: flex-end }
+
+.pr-row { min-height: 60px; border-bottom: 1px solid var(--line); transition: background .12s }
+.pr-row:last-child { border-bottom: 0 }
+.pr-row:hover { background: color-mix(in srgb, var(--acc-soft) 55%, transparent) }
+.pr-row.off > span:not(.pr-acc):not(.pr-chk) { opacity: .5 }
+
+.pr-cod { font-family: ui-monospace, Consolas, monospace; font-size: 13px; color: var(--mut) }
+.pr-nom { font-weight: 600; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.pr-tag { font-style: normal; font-size: 11.5px; font-weight: 600; margin-left: 10px; padding: 2px 9px; border-radius: 99px; background: var(--bg); color: var(--mut) }
+.pr-cat-t { color: var(--mut); font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.pr-precio { font-weight: 600; font-size: 15px; font-variant-numeric: tabular-nums }
+
+.pr-stk { display: flex; align-items: center; gap: 8px; font-weight: 600; font-variant-numeric: tabular-nums }
+.pr-stk::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--d) }
+.pr-stk.ok { --d: var(--mint-t) }
+.pr-stk.bajo { --d: var(--peach-t); color: var(--peach-t) }
+.pr-stk.sin { --d: var(--rose-t); color: var(--rose-t) }
+
+/* Acciones: aparecen al pasar el mouse */
+.pr-acc { display: flex; justify-content: flex-end; gap: 2px; opacity: 0; transition: opacity .12s }
+.pr-row:hover .pr-acc, .pr-acc:focus-within { opacity: 1 }
+@media (hover: none) { .pr-acc { opacity: 1 } }
+.pr-ic { width: 34px; height: 34px; padding: 0; display: grid; place-content: center; background: transparent; color: var(--mut); border-radius: 10px }
+.pr-ic:hover { background: var(--bg); color: var(--txt) }
+.pr-ic.del:hover { background: var(--rose); color: var(--rose-t) }
+.pr-ic.res:hover { background: var(--mint); color: var(--mint-t) }
+
+/* ---------- Pie ---------- */
+.pr-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 28px; border-top: 1px solid var(--line); color: var(--mut); font-size: 13px; flex: none; min-height: 52px }
+.pr-pag { display: flex; align-items: center; gap: 6px }
+.pr-pag span { min-width: 56px; text-align: center; font-variant-numeric: tabular-nums }
+.pr-pag button { width: 32px; height: 32px; padding: 0; font-size: 18px; line-height: 1; background: transparent; color: var(--txt) }
+.pr-pag button:hover { background: var(--bg) }
+
+/* ---------- Vacío ---------- */
+.pr-vacio { text-align: center; color: var(--mut); padding: 70px 20px; display: flex; flex-direction: column; align-items: center; gap: 6px }
+.pr-vacio b { font-size: 40px; font-weight: 400 }
+.pr-vacio button { margin-top: 12px }
+
+/* ==========================================================
+   MODO ETIQUETAS: la tabla NO cambia, solo el banner de arriba
+   ========================================================== */
+.pr-chk { display: none }
+.pr-banner {
+  display: none; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  padding: 12px 20px; border-radius: 16px; color: var(--acc-txt);
+  background: var(--acc-soft); border: 1px solid color-mix(in srgb, var(--acc) 45%, transparent);
+}
+.pr-banner b { display: block; font-size: 15px }
+.pr-banner small { color: color-mix(in srgb, var(--acc-txt) 75%, transparent); font-size: 13px }
+.pr-banner .r { display: flex; align-items: center; gap: 8px }
+.pr-banner .n { font-weight: 800; margin-right: 8px; white-space: nowrap; font-variant-numeric: tabular-nums }
+.pr-banner button { padding: 8px 14px; font-size: 13.5px; font-weight: 600; background: var(--card) }
+.pr-banner button:hover { background: var(--bg) }
+
+.modo-etq .pr-acc { visibility: hidden; pointer-events: none }
+.modo-etq .pr-row { cursor: pointer; user-select: none }
+.modo-etq .pr-row.sel { background: color-mix(in srgb, var(--acc-soft) 90%, transparent); box-shadow: inset 4px 0 0 var(--acc) }
+.modo-etq .pr-nuevo { opacity: .35 }
+
+/* ==========================================================
+   VISTA PREVIA A4 (pantalla completa)
+   ========================================================== */
+.etq-ov { position: fixed; inset: 0; z-index: 70; background: var(--bg) }
+.etq-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 14px }
+.etq-scroll { overflow: auto; border-radius: 22px; padding: 24px 28px; background: color-mix(in srgb, var(--txt) 8%, var(--bg)) }
+.etq-pag { margin: 0 auto 30px; width: max-content }
+.etq-cap { font-size: 13px; font-weight: 600; color: var(--mut); margin-bottom: 8px }
+.etq-esc { position: relative; background: #fff; box-shadow: 0 6px 28px rgba(0, 0, 0, .2) }
+.etq-esc .hoja { position: absolute; left: 0; top: 0; transform-origin: 0 0 }
+.etq-esc .et { cursor: pointer }
+.etq-esc .et:hover { z-index: 2; box-shadow: inset 0 0 0 .2mm #d3d1da, 0 0 0 .5mm #c9c3ea }
+.etq-esc .et.sel { z-index: 3; box-shadow: inset 0 0 0 .2mm #d3d1da, 0 0 0 .9mm #9a8fd1 }
+.etq-esc .et.arrastrando { opacity: .35 }
+.etq-esc .et.sobre { z-index: 3; box-shadow: inset 0 0 0 .2mm #d3d1da, 0 0 0 .9mm #3d7a5f }
+.etq-vacio { text-align: center; color: var(--mut); padding: 80px 20px }
+
+.etq-zoom { display: flex; align-items: center; gap: 6px; background: var(--card); border-radius: 99px; padding: 4px; box-shadow: var(--shadow) }
+.etq-zoom button { padding: 6px 12px; border-radius: 99px; background: transparent; font-weight: 600; font-size: 14px }
+.etq-zoom button:hover { background: var(--bg) }
+.etq-zoom span { min-width: 46px; text-align: center; font-size: 13px; color: var(--mut); font-variant-numeric: tabular-nums }
+
+.etq-panel { padding: 22px; display: flex; flex-direction: column; gap: 22px; overflow: auto; min-height: 0 }
+.etq-sec h4 { margin: 0 0 10px; font-size: 14px }
+.etq-seg { display: flex; background: var(--bg); border-radius: 99px; padding: 3px }
+.etq-seg button { flex: 1; background: transparent; border-radius: 99px; padding: 8px 6px; font-size: 13.5px; font-weight: 600; color: var(--mut) }
+.etq-seg button.on { background: var(--card); color: var(--acc-txt); box-shadow: var(--shadow) }
+.etq-fila { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; font-size: 14px }
+.etq-fila label { color: var(--mut); margin: 0; font-size: 14px; font-weight: 500 }
+.etq-in { display: flex; align-items: center; gap: 6px; color: var(--mut) }
+.etq-in input { width: 84px; padding: 9px 12px; text-align: center; font-weight: 700 }
+.etq-hint { margin: 0; color: var(--mut); font-size: 13.5px; line-height: 1.5 }
+.etq-sel-nom { font-weight: 700; font-size: 15px; line-height: 1.3 }
+.etq-sel-cod { display: block; color: var(--mut); font-family: ui-monospace, Consolas, monospace; font-size: 12px; margin: 2px 0 12px }
+.etq-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 14px }
+.etq-btns button { padding: 11px; font-weight: 600 }
+.etq-btns .del { background: var(--rose); color: var(--rose-t) }
+.etq-pie { margin-top: auto; display: flex; flex-direction: column; gap: 12px }
+.etq-res b { display: block; font-size: 16px }
+.etq-res small { display: block; color: var(--mut); font-size: 13px; margin-top: 2px }
+.etq-pie .go { padding: 15px; font-size: 16px; font-weight: 700 }
+
+@media (max-width: 900px) {
+  .pr-card { --cols: minmax(0, 1fr) 110px 80px 76px }
+  .pr-head .c-cod, .pr-head .c-cat, .pr-row .c-cod, .pr-row .c-cat { display: none }
+  .pr-bar { flex-wrap: wrap }
+  .pr-search { flex: 1 1 100% }
+  .pr-sel { flex: 1; width: auto }
+  .etq-body { grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) auto }
+  .etq-panel { max-height: 40vh }
+}

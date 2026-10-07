@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#101b3d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Consultá el precio</title>
+<style>
+  :root { --tinta:#101b3d; --cartel:#ffd23f; --error:#e5484d; --suave:#6a7691; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; margin:0; overflow:hidden; color:#fff; user-select:none; touch-action:manipulation;
+    background:radial-gradient(120% 90% at 50% 0%,#24387a 0%,#101b3d 60%,#0a1128 100%);
+    font-family:"Segoe UI",system-ui,-apple-system,Roboto,sans-serif; }
+  button { font:inherit; border:0; cursor:pointer; color:inherit; }
+  button:focus-visible { outline:3px solid var(--cartel); outline-offset:2px; }
+
+  /* distribución: visor a la izquierda, información a la derecha (en vertical, uno sobre otro) */
+  #app { position:fixed; inset:0; display:grid; grid-template-columns:1.15fr 1fr; gap:clamp(12px,2.4vmin,26px);
+    padding:max(clamp(12px,2.4vmin,26px),env(safe-area-inset-top)) clamp(12px,2.4vmin,26px); }
+  @media (orientation:portrait) { #app { grid-template-columns:1fr; grid-template-rows:1.05fr 1fr; } }
+
+  /* visor */
+  #visor { position:relative; overflow:hidden; border-radius:28px; background:#0a1128;
+    box-shadow:0 0 0 3px rgba(255,255,255,.12), 0 20px 50px rgba(0,0,0,.35); transition:box-shadow .25s; }
+  #visor.hit { box-shadow:0 0 0 4px var(--cartel), 0 0 40px rgba(255,210,63,.45); }
+  #video,#reader { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  #video { display:none; }
+  #video.espejo { transform:scaleX(-1); }
+  body.escaneando #video { display:block; }
+  #reader video { width:100%!important; height:100%!important; object-fit:cover; }
+  #reader__dashboard,#reader__scan_region img { display:none!important; }
+
+  #marco { position:absolute; left:50%; top:46%; width:76%; height:40%; transform:translate(-50%,-50%);
+    border-radius:22px; pointer-events:none; box-shadow:0 0 0 100vmax rgba(10,17,40,.55); }
+  #marco i { position:absolute; width:12%; max-width:46px; aspect-ratio:1; border:4px solid var(--cartel); transition:border-color .2s; }
+  #marco i:nth-child(1) { top:-2px; left:-2px; border-right:0; border-bottom:0; border-radius:22px 0 0 0; }
+  #marco i:nth-child(2) { top:-2px; right:-2px; border-left:0; border-bottom:0; border-radius:0 22px 0 0; }
+  #marco i:nth-child(3) { bottom:-2px; left:-2px; border-right:0; border-top:0; border-radius:0 0 0 22px; }
+  #marco i:nth-child(4) { bottom:-2px; right:-2px; border-left:0; border-top:0; border-radius:0 0 22px 0; }
+  #marco b { position:absolute; left:5%; right:5%; height:2px; top:8%;
+    background:linear-gradient(90deg,transparent,var(--cartel),transparent); box-shadow:0 0 14px var(--cartel);
+    animation:barrido 2.1s ease-in-out infinite alternate; }
+  #visor.hit #marco i { border-color:#fff; animation:golpe .38s ease-out; }
+  @keyframes barrido { to { top:90%; } }
+  @keyframes golpe { 50% { transform:scale(1.15); } }
+
+  #instruccion { position:absolute; left:50%; bottom:clamp(14px,3vmin,30px); transform:translateX(-50%);
+    width:max-content; max-width:92%; display:flex; align-items:center; gap:12px; text-align:left;
+    padding:clamp(10px,1.8vmin,16px) clamp(16px,3vmin,28px); border-radius:999px; font-weight:600;
+    font-size:clamp(1rem,2.7vmin,1.6rem); background:rgba(16,27,61,.78);
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); }
+  #instruccion svg { flex:none; width:1.5em; height:1.5em; fill:none; stroke:var(--cartel); stroke-width:2;
+    stroke-linecap:round; stroke-linejoin:round; animation:pulso 1.6s ease-in-out infinite; }
+  @keyframes pulso { 50% { transform:scale(1.2); } }
+
+  #diag { position:absolute; left:14px; top:14px; font-size:.8rem; opacity:.7; display:none; }
+  .debug #diag { display:block; }
+  #btnCam { position:absolute; top:14px; right:14px; width:50px; height:50px; border-radius:50%;
+    background:rgba(16,27,61,.6); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    display:none; place-items:center; }
+  body.escaneando #btnCam { display:grid; }
+  #btnCam svg { width:24px; height:24px; fill:none; stroke:#fff; stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
+  #btnCam:active { transform:scale(.9); }
+
+  /* panel de información */
+  #panel { position:relative; overflow:hidden; background:#fff; color:var(--tinta); border-radius:28px;
+    padding:clamp(20px,4.5vmin,48px); display:flex; flex-direction:column; justify-content:center;
+    box-shadow:0 20px 50px rgba(0,0,0,.35); }
+  #vacio,#dato { display:none; }
+  #panel:not(.dato) #vacio { display:block; animation:entrar .5s ease-out; }
+  #panel.dato #dato { display:block; }
+  #dato.nuevo { animation:entrar .5s cubic-bezier(.2,1.1,.3,1); }
+  @keyframes entrar { from { opacity:0; transform:translateY(26px); } }
+
+  #vacio svg { width:clamp(90px,20vmin,170px); height:auto; margin-bottom:clamp(8px,2vmin,22px); }
+  #vacio .laser { animation:barrido2 1.8s ease-in-out infinite alternate; }
+  @keyframes barrido2 { from { transform:translateY(0); } to { transform:translateY(46px); } }
+  #vacio h2 { margin:0 0 10px; font-size:clamp(1.7rem,6vmin,3.4rem); line-height:1.1; font-weight:750; letter-spacing:-.01em; }
+  #vacio p { margin:0; color:var(--suave); font-size:clamp(1rem,2.8vmin,1.6rem); line-height:1.35; max-width:26ch; }
+
+  #tiempo { position:absolute; top:0; left:clamp(20px,4.5vmin,48px); right:clamp(20px,4.5vmin,48px); height:6px;
+    border-radius:0 0 6px 6px; background:var(--cartel); transform-origin:left; display:none; }
+  #panel.dato #tiempo { display:block; animation:gastar 10s linear forwards; }
+  @keyframes gastar { to { transform:scaleX(0); } }
+
+  #nombre { font-size:clamp(1.5rem,5.4vmin,3.2rem); font-weight:650; line-height:1.15;
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden; }
+  .etiqueta { position:relative; display:inline-block; margin:clamp(12px,3vmin,30px) 0 clamp(6px,1.5vmin,14px);
+    padding:2px clamp(22px,4vmin,40px) 2px clamp(46px,8vmin,80px); background:var(--cartel); border-radius:22px; }
+  .etiqueta::before { content:""; position:absolute; left:clamp(16px,3vmin,30px); top:50%; width:clamp(14px,2.4vmin,24px);
+    aspect-ratio:1; margin-top:calc(clamp(14px,2.4vmin,24px) / -2); border-radius:50%; background:#fff;
+    box-shadow:inset 0 1px 3px rgba(0,0,0,.25); }
+  #precio { font-size:clamp(3.4rem,17vmin,10rem); font-weight:800; line-height:1.1;
+    font-variant-numeric:tabular-nums; letter-spacing:-.03em; white-space:nowrap; }
+  #panel.mal .etiqueta { background:var(--error); color:#fff; }
+  #panel.mal #precio { font-size:clamp(1.6rem,6.5vmin,3.4rem); font-weight:700; padding:12px 0; white-space:normal; }
+  #codigo { color:var(--suave); font-size:clamp(.95rem,2.4vmin,1.4rem); }
+
+  /* pantalla de inicio (hace falta un toque para pedir la cámara) */
+  #inicio { position:fixed; inset:0; z-index:5; display:grid; place-items:center; text-align:center; padding:24px;
+    background:radial-gradient(120% 90% at 50% 0%,#24387a 0%,#101b3d 60%,#0a1128 100%);
+    transition:opacity .45s, visibility .45s; }
+  body.escaneando #inicio { opacity:0; visibility:hidden; }
+  #logo { width:clamp(80px,16vmin,130px); animation:flota 3.2s ease-in-out infinite alternate; }
+  @keyframes flota { to { transform:translateY(-8px); } }
+  #inicio h1 { font-size:clamp(1.9rem,7vmin,3.2rem); margin:22px 0 8px; font-weight:750; }
+  #inicio p { margin:0 auto; max-width:32ch; opacity:.8; line-height:1.4; font-size:clamp(1rem,2.6vmin,1.4rem); }
+  #btnIni { margin-top:32px; width:min(100%,380px); padding:clamp(18px,3vmin,26px); font-size:clamp(1.15rem,3vmin,1.5rem);
+    font-weight:750; border-radius:22px; background:var(--cartel); color:var(--tinta); box-shadow:0 10px 30px rgba(255,210,63,.3); }
+  #btnIni:active { transform:scale(.97); }
+  #aviso { color:#ff9ea1; min-height:1.4em; margin-top:18px!important; font-size:1rem!important; }
+
+  @media (prefers-reduced-motion:reduce) {
+    *,*::before,*::after { animation:none!important; transition-duration:.01s!important; }
+  }
+</style>
+</head>
+<body>
+  <main id="app">
+    <section id="visor">
+      <video id="video" playsinline muted></video><div id="reader"></div>
+      <div id="diag"></div>
+      <div id="marco"><i></i><i></i><i></i><i></i><b></b></div>
+      <button id="btnCam" aria-label="Cambiar de cámara"><svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></svg></button>
+      <div id="instruccion">
+        <svg viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2l2-2h6l2 2h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="13" r="3.5"/></svg>
+        <span>Apuntá el código de barras a la cámara de la tablet</span>
+      </div>
+    </section>
+
+    <section id="panel" aria-live="polite">
+      <div id="tiempo"></div>
+      <div id="vacio">
+        <svg viewBox="0 0 120 100" aria-hidden="true">
+          <g fill="#101b3d"><rect x="8" y="10" width="9" height="70" rx="2"/><rect x="22" y="10" width="4" height="70" rx="2"/><rect x="31" y="10" width="12" height="70" rx="2"/><rect x="48" y="10" width="4" height="70" rx="2"/><rect x="57" y="10" width="8" height="70" rx="2"/><rect x="70" y="10" width="4" height="70" rx="2"/><rect x="79" y="10" width="11" height="70" rx="2"/><rect x="95" y="10" width="6" height="70" rx="2"/></g>
+          <rect class="laser" x="2" y="14" width="116" height="4" rx="2" fill="#ffd23f"/>
+        </svg>
+        <h2>Escaneá tu producto</h2>
+        <p>Acercá el código de barras a la cámara y acá vas a ver el precio.</p>
+      </div>
+      <div id="dato">
+        <div id="nombre"></div>
+        <div class="etiqueta"><div id="precio"></div></div>
+        <div id="codigo"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="inicio">
+    <div>
+      <svg id="logo" viewBox="0 0 96 96" aria-hidden="true"><rect width="96" height="96" rx="24" fill="#ffd23f"/><g fill="#101b3d"><rect x="20" y="24" width="6" height="48" rx="2"/><rect x="31" y="24" width="3" height="48" rx="1.5"/><rect x="39" y="24" width="8" height="48" rx="2"/><rect x="52" y="24" width="3" height="48" rx="1.5"/><rect x="60" y="24" width="5" height="48" rx="2"/><rect x="70" y="24" width="6" height="48" rx="2"/></g></svg>
+      <h1>Consultá el precio</h1>
+      <p>Escaneá cualquier producto y mirá cuánto cuesta al instante.</p>
+      <button id="btnIni" type="button">Tocá para empezar</button>
+      <p id="aviso"></p>
+    </div>
+  </div>
+
+<script>
+const $ = id => document.getElementById(id);
+if (location.search.includes("debug")) document.documentElement.classList.add("debug");
+const pesos = n => new Intl.NumberFormat("es-AR", {style:"currency", currency:"ARS", minimumFractionDigits: n % 1 ? 2 : 0, maximumFractionDigits: 2}).format(n);
+const reducido = matchMedia("(prefers-reduced-motion: reduce)").matches;
+let ultimo = "", ultimoT = 0, tOcultar = null, audio = null, stream = null, bucle = null,
+    html5 = null, wake = null, activo = false, animId = 0, modo = "user"; // "user" = cámara frontal
+
+function beep(ok) {
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.frequency.value = ok ? 1100 : 280; g.gain.value = 0.08;
+    o.connect(g); g.connect(audio.destination);
+    o.start(); o.stop(audio.currentTime + (ok ? 0.1 : 0.28));
+  } catch (e) {}
+}
+
+function animar(el, hasta) {
+  const id = ++animId;
+  if (reducido || hasta < 1) { el.textContent = pesos(hasta); return; }
+  const t0 = performance.now(), dur = 450;
+  const paso = t => {
+    if (id !== animId) return;
+    const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+    el.textContent = k < 1 ? pesos(Math.round(hasta * e)) : pesos(hasta);
+    if (k < 1) requestAnimationFrame(paso);
+  };
+  requestAnimationFrame(paso);
+}
+
+function mostrar(ok, nombre, precio, codigo, textoMal) {
+  const p = $("panel"), d = $("dato");
+  p.classList.add("dato"); p.classList.toggle("mal", !ok);
+  $("nombre").textContent = nombre;
+  $("codigo").textContent = codigo ? "Código " + codigo : "";
+  if (ok) animar($("precio"), precio); else { animId++; $("precio").textContent = textoMal; }
+  d.classList.remove("nuevo"); void d.offsetWidth; d.classList.add("nuevo");
+  const t = $("tiempo"); t.style.animation = "none"; void t.offsetWidth; t.style.animation = "";
+  clearTimeout(tOcultar); tOcultar = setTimeout(() => p.classList.remove("dato"), 10000);
+}
+
+async function consultar(codigo) {
+  codigo = (codigo || "").trim();
+  if (!codigo) return;
+  try {
+    const res = await fetch("/productos/precio/" + encodeURIComponent(codigo));
+    if (res.status === 404) { beep(false); return mostrar(false, "Producto no encontrado", 0, codigo, "Sin precio cargado"); }
+    if (!res.ok) throw new Error(res.status);
+    const p = await res.json();
+    beep(true);
+    mostrar(true, p.nombre, p.precio, p.codigo);
+  } catch (e) {
+    beep(false);
+    mostrar(false, "No se pudo consultar", 0, codigo, "Revisá el WiFi");
+  }
+}
+
+function leido(codigo) {
+  const ahora = Date.now();
+  if (codigo === ultimo && ahora - ultimoT < 2500) return;
+  ultimo = codigo; ultimoT = ahora;
+  const v = $("visor"); v.classList.remove("hit"); void v.offsetWidth; v.classList.add("hit");
+  setTimeout(() => v.classList.remove("hit"), 600);
+  consultar(codigo);
+}
+
+// Lector Bluetooth/USB opcional: escribe el código + Enter
+let buf = "", tBuf = null;
+addEventListener("keydown", e => {
+  if (e.ctrlKey || e.altKey || e.metaKey) return;
+  if (e.key === "Enter") { if (buf) consultar(buf); buf = ""; return; }
+  if (e.key.length === 1) { buf += e.key; clearTimeout(tBuf); tBuf = setTimeout(() => buf = "", 400); }
+});
+
+/* ---- cámara ---- */
+async function iniciar() {
+  const aviso = $("aviso"); aviso.textContent = "";
+  if (!window.isSecureContext || !navigator.mediaDevices) {
+    aviso.textContent = "El navegador bloquea la cámara en páginas http. Abrí la dirección https del servidor.";
+    return;
+  }
+  try { await document.documentElement.requestFullscreen({navigationUI: "hide"}); } catch (e) {}
+  try { wake = await navigator.wakeLock.request("screen"); } catch (e) {}
+  try {
+    $("video").classList.toggle("espejo", modo === "user");
+    if ("BarcodeDetector" in window) {
+      const det = new BarcodeDetector({formats: ["ean_13","ean_8","upc_a","upc_e","code_128","code_39","itf","qr_code"]});
+      stream = await navigator.mediaDevices.getUserMedia({video: {facingMode: {ideal: modo}, width: {ideal: 1920}, height: {ideal: 1080}, frameRate: {ideal: 30}}, audio: false});
+      const v = $("video"); v.srcObject = stream; await v.play();
+      const trk = stream.getVideoTracks()[0];
+      for (const c of [{focusMode: "continuous"}, {exposureMode: "continuous"}, {whiteBalanceMode: "continuous"}])
+        trk.applyConstraints({advanced: [c]}).catch(() => {});
+      const st = trk.getSettings();
+      $("diag").textContent = st.width + "×" + st.height + (modo === "user" ? " · frontal" : " · trasera");
+      const paso = async () => {
+        if (!stream) return;
+        try { const r = await det.detect(v); if (r.length) leido(r[0].rawValue); } catch (e) {}
+        bucle = setTimeout(paso, 120);
+      };
+      paso();
+    } else {
+      await cargarLib();
+      html5 = new Html5Qrcode("reader");
+      await html5.start({facingMode: modo}, {fps: 10, qrbox: {width: 280, height: 140}}, leido);
+    }
+    activo = true; document.body.classList.add("escaneando");
+  } catch (e) {
+    detener();
+    aviso.textContent = e && e.name === "NotAllowedError"
+      ? "Permiso de cámara denegado. Tocá el candado de la barra de direcciones y permitila."
+      : "No se pudo abrir la cámara: " + (e && e.message ? e.message : e);
+  }
+}
+
+function cargarLib() {
+  return new Promise((ok, fail) => {
+    if (window.Html5Qrcode) return ok();
+    const s = document.createElement("script");
+    s.src = "https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js";
+    s.onload = ok;
+    s.onerror = () => fail(new Error("Este navegador no lee códigos y no hay internet para bajar el lector. Probá con Chrome."));
+    document.head.appendChild(s);
+  });
+}
+
+function detener() {
+  clearTimeout(bucle); activo = false;
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+  if (html5) { html5.stop().catch(() => {}); html5 = null; }
+  if (wake) { wake.release().catch(() => {}); wake = null; }
+  document.body.classList.remove("escaneando");
+}
+
+$("btnIni").onclick = iniciar;
+$("btnCam").onclick = () => { modo = modo === "user" ? "environment" : "user"; detener(); iniciar(); };
+document.addEventListener("visibilitychange", () => { if (document.hidden && activo) detener(); });
+
+// Si ya diste permiso de cámara antes, arranca solo (ideal para dejarla fija en el mostrador)
+if (navigator.permissions) {
+  navigator.permissions.query({name: "camera"}).then(p => { if (p.state === "granted") iniciar(); }).catch(() => {});
+}
+</script>
+</body>
+</html>

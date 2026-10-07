@@ -1,0 +1,11 @@
+.venv/
+__pycache__/
+*.pyc
+.vscode/
+.env
+*.pem
+*.db
+*.db-wal
+*.db-shm
+fotos_remitos/
+proyecto_todo.txt

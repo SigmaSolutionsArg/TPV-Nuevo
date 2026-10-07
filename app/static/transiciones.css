@@ -1,0 +1,69 @@
+/* ==========================================================
+   TPV · transiciones.css
+   Fades y transiciones suaves para toda la app.
+   Se carga DESPUÉS de los demás CSS (index.html, stats.css, productos.css).
+   ========================================================== */
+
+/* ---------- Animaciones base ---------- */
+@keyframes txVista { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+@keyframes txFade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes txFadeOut { from { opacity: 1 } to { opacity: 0 } }
+@keyframes txBoxIn { from { opacity: 0; transform: translateY(14px) scale(.97) } to { opacity: 1; transform: none } }
+@keyframes txBoxOut { from { opacity: 1; transform: none } to { opacity: 0; transform: translateY(8px) scale(.98) } }
+@keyframes txDrop { from { opacity: 0; transform: translateY(-6px) } to { opacity: 1; transform: none } }
+@keyframes txCard { from { opacity: 0; transform: translateY(12px) } to { opacity: 1; transform: none } }
+
+/* ---------- Cambio entre pantallas (Home, Mostrador, Caja, Admin...) ---------- */
+.view { animation: txVista .28s cubic-bezier(.2, .8, .2, 1) }
+
+/* ---------- Modales: entran con fade + leve subida, y salen con fade ---------- */
+.modal.abierto { animation: txFade .18s ease }
+.modal.abierto .box { animation: txBoxIn .24s cubic-bezier(.2, .8, .2, 1) }
+.modal.cerrando { animation: txFadeOut .16s ease forwards; pointer-events: none }
+.modal.cerrando .box,
+.modal.cerrando .ok-card { animation: txBoxOut .16s ease forwards }
+
+/* ---------- Pieza por pieza ---------- */
+.sug.on { animation: txDrop .15s ease }                       /* sugerencias del buscador */
+.pr-banner { animation: txDrop .22s ease }                    /* banner "Modo etiquetas" */
+.etq-ov { animation: txFade .22s ease }                       /* vista previa de etiquetas */
+
+/* Estadísticas: las tarjetas aparecen una tras otra */
+#stDash > section { animation: txCard .4s cubic-bezier(.2, .8, .2, 1) both }
+#stDash > section:nth-child(2) { animation-delay: .04s }
+#stDash > section:nth-child(3) { animation-delay: .08s }
+#stDash > section:nth-child(4) { animation-delay: .12s }
+#stDash > section:nth-child(5) { animation-delay: .16s }
+#stDash > section:nth-child(6) { animation-delay: .2s }
+#stDash > section:nth-child(7) { animation-delay: .24s }
+#stDash > section:nth-child(8) { animation-delay: .28s }
+#stDash > section:nth-child(9) { animation-delay: .32s }
+#stDash > section:nth-child(n+10) { animation-delay: .36s }
+
+/* ---------- Transiciones de estado (hover, foco, selección, tema claro/oscuro) ---------- */
+button {
+  transition: background-color .18s ease, color .18s ease, transform .12s ease,
+    filter .18s ease, box-shadow .18s ease, opacity .18s ease, border-color .18s ease;
+}
+input, select {
+  transition: border-color .18s ease, background-color .25s ease, color .25s ease, box-shadow .18s ease;
+}
+.card, .box, .pill, .sug, .login-card, .etq-scroll {
+  transition: background-color .3s ease, color .3s ease, box-shadow .25s ease, border-color .25s ease;
+}
+.pr-row { transition: background-color .15s ease, box-shadow .15s ease }
+.pr-ic, .pr-chk, .pr-box { transition: background-color .15s ease, color .15s ease, border-color .15s ease }
+.s { transition: background-color .12s ease }
+.linea { transition: background-color .15s ease }
+.etq-esc .et { transition: box-shadow .15s ease, opacity .15s ease }
+.aq-card { transition: border-color .2s ease, background-color .2s ease }
+.aq-chip, .aq-d, .aq-res .dif { transition: background-color .2s ease, color .2s ease }
+
+/* ---------- Si el sistema pide menos movimiento, casi sin animaciones ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-delay: 0s !important;
+    transition-duration: .01ms !important;
+  }
+}

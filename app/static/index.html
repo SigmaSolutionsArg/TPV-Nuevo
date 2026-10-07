@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>TPV · Punto de Ventas y Caja</title>
+  <link rel="icon" href="/static/logo.png">
+
+  <style>
+    /* ==========================================================
+       1. VARIABLES DE TEMA (claro / oscuro)
+       ========================================================== */
+    :root {
+      --bg: #f4f2ee;
+      --card: #fbfaf8;
+      --txt: #3b3a42;
+      --mut: #9a98a3;
+      --line: #ebe8e2;
+      --input: #f4f2ee;
+      --acc: #9a8fd1;
+      --acc-soft: #e8e4f6;
+      --acc-txt: #4b4380;
+      --mint: #d5ebdf;
+      --mint-t: #3d7a5f;
+      --rose: #f5dde0;
+      --rose-t: #b0505f;
+      --peach: #f7e6d6;
+      --peach-t: #a8693a;
+      --cta: #b9d9c9;
+      --cta-t: #244a39;
+      --shadow: 0 2px 10px rgba(60, 50, 40, .06);
+      --overlay: rgba(60, 55, 50, .35)
+    }
+
+    [data-theme="dark"] {
+      --bg: #1b1a20;
+      --card: #25242c;
+      --txt: #e9e7ee;
+      --mut: #8f8d9b;
+      --line: #33313b;
+      --input: #1b1a20;
+      --acc: #a79fd6;
+      --acc-soft: #34314a;
+      --acc-txt: #d4cff2;
+      --mint: #2c3f37;
+      --mint-t: #a5d6bf;
+      --rose: #47303a;
+      --rose-t: #e7a3b0;
+      --peach: #4a3b2e;
+      --peach-t: #e5b88f;
+      --cta: #3f5f50;
+      --cta-t: #e2f3ea;
+      --shadow: 0 2px 10px rgba(0, 0, 0, .3);
+      --overlay: rgba(0, 0, 0, .6)
+    }
+
+    /* ==========================================================
+       2. BASE: reset, tipografía, botones, inputs
+       ========================================================== */
+    * {
+      box-sizing: border-box;
+    }
+
+    html,
+    body {
+      height: 100%;
+    }
+
+    body {
+      margin: 0;
+      color: var(--txt);
+      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+      overflow: hidden;
+      background: var(--bg);
+      transition: background .25s, color .25s;
+    }
+
+    button {
+      font: inherit;
+      color: inherit;
+      cursor: pointer;
+      border: 0;
+      border-radius: 14px;
+      padding: 10px 16px;
+      background: var(--acc-soft);
+      transition: background .15s, transform .1s;
+    }
+
+    button:hover {
+      filter: brightness(.97);
+    }
+
+    button:active {
+      transform: scale(.98);
+    }
+
+    button:disabled {
+      opacity: .45;
+      cursor: not-allowed;
+    }
+
+    input,
+    select {
+      font: inherit;
+      color: var(--txt);
+      width: 100%;
+      background: var(--input);
+      border: 2px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      outline: none;
+      transition: border-color .15s;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--acc);
+    }
+
+    /* Inputs numéricos SIN flechitas (global). El teclado y la rueda
+       del mouse se bloquean en app.js */
+    input[type=number] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
+    input[type=number]::-webkit-outer-spin-button,
+    input[type=number]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+
+    kbd {
+      font: 600 11px ui-monospace, Consolas, monospace;
+      color: var(--mut);
+      background: var(--bg);
+      border-radius: 7px;
+      padding: 2px 7px;
+    }
+
+    /* ==========================================================
+       3. LAYOUT GENERAL: pantallas, encabezado, tarjetas
+       ========================================================== */
+    .app {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 18px 22px;
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo {
+      width: 38px;
+      height: 38px;
+      border-radius: 12px;
+      background: var(--acc);
+      display: grid;
+      place-content: center;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .brand b {
+      display: block;
+      font-size: 17px;
+    }
+
+    .brand small {
+      color: var(--mut);
+    }
+
+    .sp {
+      flex: 1;
+    }
+
+    .pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      color: var(--mut);
+      background: var(--card);
+      border-radius: 99px;
+      padding: 8px 14px;
+      box-shadow: var(--shadow);
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #8cc9ab;
+    }
+
+    .dot.off {
+      background: #d98a99;
+    }
+
+    .reloj {
+      color: var(--txt);
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .theme {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      padding: 0;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      font-size: 18px;
+    }
+
+    main {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+
+    /* ==========================================================
+       4. MOSTRADOR: buscador, sugerencias, carrito, dock
+       ========================================================== */
+    .searchwrap {
+      position: relative;
+    }
+
+    .searchwrap input {
+      padding: 18px 70px 18px 54px;
+      font-size: 18px;
+      border-radius: 20px;
+      background: var(--card);
+      box-shadow: var(--shadow);
+      border-color: transparent;
+    }
+
+    .searchwrap input:focus {
+      border-color: var(--acc);
+    }
+
+    .searchwrap .ic {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      opacity: .5;
+    }
+
+    .searchwrap kbd {
+      position: absolute;
+      right: 18px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    .sug {
+      display: none;
+      position: absolute;
+      z-index: 20;
+      left: 0;
+      right: 0;
+      top: calc(100% + 8px);
+      max-height: 340px;
+      overflow: auto;
+      padding: 8px;
+      background: var(--card);
+      border-radius: 20px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, .15);
+    }
+
+    .sug.on {
+      display: block;
+    }
+
+    .s {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      text-align: left;
+      background: none;
+      border-radius: 14px;
+      padding: 12px 14px;
+    }
+
+    .s.sel,
+    .s:hover {
+      background: var(--acc-soft);
+    }
+
+    .s .n {
+      flex: 1;
+    }
+
+    .s .n small {
+      display: block;
+      color: var(--mut);
+    }
+
+    .s .p {
+      font-weight: 700;
+      font-size: 17px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .s .st {
+      font-size: 12px;
+      color: var(--mint-t);
+      background: var(--mint);
+      padding: 3px 9px;
+      border-radius: 99px;
+    }
+
+    .s .st.low {
+      color: var(--rose-t);
+      background: var(--rose);
+    }
+
+    .lista {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 8px 24px 12px;
+    }
+
+    .cols {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 150px 130px 160px 40px;
+      column-gap: 20px;
+      align-items: center;
+    }
+
+    .thead {
+      padding: 14px 0;
+      color: var(--mut);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .thead span:nth-child(n+2) {
+      text-align: center;
+    }
+
+    .thead span:nth-child(4) {
+      text-align: right;
+    }
+
+    #carrito {
+      flex: 1;
+      overflow: auto;
+    }
+
+    .linea {
+      padding: 14px 0;
+      border-top: 1px solid var(--line);
+      animation: in .2s ease;
+    }
+
+    @keyframes in {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+    }
+
+    .nm {
+      font-weight: 600;
+      font-size: 18px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .pu {
+      text-align: center;
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--txt);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .qty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .qty button {
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      border-radius: 9px;
+      font-size: 15px;
+    }
+
+    .qty b {
+      min-width: 22px;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+    }
+
+    .sub {
+      text-align: right;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--acc-txt);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .x {
+      width: 32px;
+      height: 32px;
+      padding: 0;
+      border-radius: 10px;
+      background: transparent;
+      color: var(--mut);
+    }
+
+    .x:hover {
+      background: var(--rose);
+      color: var(--rose-t);
+    }
+
+    .vacio {
+      height: 100%;
+      display: grid;
+      place-content: center;
+      text-align: center;
+      color: var(--mut);
+      gap: 8px;
+    }
+
+    .vacio b {
+      font-size: 46px;
+    }
+
+    .dock {
+      display: grid;
+      grid-template-columns: 1.25fr .7fr 1fr 1fr 1.7fr;
+      gap: 12px;
+      align-items: stretch;
+    }
+
+    .stat {
+      padding: 26px 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .lbl {
+      color: var(--mut);
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .stat .v {
+      font-size: 38px;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .stat.t .v {
+      color: var(--acc-txt);
+    }
+
+    .act {
+      padding: 24px 18px;
+      border-radius: 22px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-align: left;
+      background: var(--card);
+      box-shadow: var(--shadow);
+    }
+
+    .act:hover {
+      background: var(--acc-soft);
+    }
+
+    .act .e {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      display: grid;
+      place-content: center;
+      font-size: 19px;
+      flex: none;
+    }
+
+    .act span small {
+      display: block;
+      color: var(--mut);
+      font-size: 12px;
+    }
+
+    .cta {
+      border-radius: 22px;
+      padding: 30px 24px;
+      font-size: 24px;
+      font-weight: 700;
+      background: var(--cta);
+      color: var(--cta-t);
+      box-shadow: var(--shadow);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .cta:hover {
+      filter: brightness(.96);
+    }
+
+    .cta kbd {
+      background: rgba(255, 255, 255, .5);
+      color: var(--cta-t);
+    }
+
+    [data-theme="dark"] .cta kbd {
+      background: rgba(0, 0, 0, .25);
+    }
+
+    /* ==========================================================
+       5. MODALES: contenedor, caja, formularios, avisos
+       ========================================================== */
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+    }
+
+    .modal.abierto {
+      display: flex;
+    }
+
+    .box {
+      background: var(--card);
+      border-radius: 26px;
+      padding: 28px;
+      width: 430px;
+      max-width: 94vw;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, .2);
+      animation: in .2s ease;
+    }
+
+    .box h2 {
+      margin: 0 0 4px;
+    }
+
+    .box p {
+      margin: 0 0 10px;
+      color: var(--mut);
+      font-size: 14px;
+    }
+
+    .box label {
+      display: block;
+      margin: 14px 0 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--mut);
+    }
+
+    .row2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .acc {
+      display: flex;
+      gap: 10px;
+      margin-top: 22px;
+    }
+
+    .acc button {
+      flex: 1;
+      padding: 13px;
+    }
+
+    .go {
+      background: var(--acc);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    [data-theme="dark"] .go {
+      color: #1b1a20;
+    }
+
+    .err {
+      color: var(--rose-t);
+      min-height: 18px;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 26px;
+      left: 50%;
+      transform: translate(-50%, 20px);
+      opacity: 0;
+      pointer-events: none;
+      background: var(--txt);
+      color: var(--card);
+      padding: 12px 22px;
+      border-radius: 99px;
+      box-shadow: var(--shadow);
+      transition: .25s;
+      z-index: 99;
+    }
+
+    #toast.on {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--line);
+      border-radius: 8px;
+    }
+
+    /* ==========================================================
+       6. POP-UP DE ÉXITO (único, reutilizable: ticket, cobro, anulación)
+       ========================================================== */
+    #mExito {
+      z-index: 999;
+      backdrop-filter: blur(6px);
+    }
+
+    .ok-card {
+      position: relative;
+      width: 380px;
+      max-width: 92vw;
+      padding: 44px 28px 30px;
+      border-radius: 30px;
+      text-align: center;
+      background: var(--card);
+      box-shadow: 0 30px 80px rgba(0, 0, 0, .25);
+      overflow: hidden;
+      cursor: pointer;
+      animation: okPop .45s cubic-bezier(.175, .885, .32, 1.275);
+    }
+
+    .ok-card::before {
+      content: "";
+      position: absolute;
+      inset: 0 0 auto 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--cta), var(--acc));
+    }
+
+    .ok-icon {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      margin: 0 auto 18px;
+    }
+
+    .ok-icon::before,
+    .ok-icon::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      background: var(--mint);
+      animation: okRing 1.4s ease-out infinite;
+    }
+
+    .ok-icon::after {
+      animation-delay: .5s;
+    }
+
+    .ok-icon svg {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: 100%;
+    }
+
+    .ok-icon circle {
+      fill: var(--mint);
+      stroke: var(--mint-t);
+      stroke-width: 4;
+      stroke-dasharray: 302;
+      stroke-dashoffset: 302;
+      transform: rotate(-90deg);
+      transform-origin: 55px 55px;
+      animation: okDraw .6s .1s ease forwards;
+    }
+
+    .ok-icon path {
+      fill: none;
+      stroke: var(--mint-t);
+      stroke-width: 7;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 70;
+      stroke-dashoffset: 70;
+      animation: okDraw .4s .55s ease forwards;
+    }
+
+    .ok-card h2 {
+      margin: 0;
+      font-size: 26px;
+      animation: okUp .4s .5s both;
+    }
+
+    .ok-sub {
+      color: var(--mut);
+      margin-top: 6px;
+      animation: okUp .4s .6s both;
+    }
+
+    .ok-total {
+      font-size: 52px;
+      font-weight: 900;
+      color: var(--acc-txt);
+      margin: 14px 0 6px;
+      font-variant-numeric: tabular-nums;
+      animation: okUp .4s .7s both;
+    }
+
+    .ok-vuelto {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--mint);
+      color: var(--mint-t);
+      border-radius: 18px;
+      padding: 14px 20px;
+      margin-top: 12px;
+      font-weight: 600;
+      font-size: 18px;
+      animation: okUp .4s .8s both;
+    }
+
+    .ok-vuelto b {
+      font-size: 30px;
+    }
+
+    .ok-bar {
+      height: 4px;
+      border-radius: 4px;
+      background: var(--line);
+      margin-top: 24px;
+      overflow: hidden;
+    }
+
+    .ok-bar i {
+      display: block;
+      height: 100%;
+      background: var(--acc);
+      animation: okBar 2.4s linear forwards;
+    }
+
+    .ok-confetti {
+      position: absolute;
+      top: 100px;
+      left: 50%;
+      pointer-events: none;
+    }
+
+    .ok-confetti i {
+      position: absolute;
+      width: 9px;
+      height: 14px;
+      border-radius: 3px;
+      opacity: 0;
+      animation: okBurst 1.1s var(--d) ease-out forwards;
+    }
+
+    /* Variante "anulado" */
+    .ok-card.anulado::before {
+      background: linear-gradient(90deg, var(--rose), var(--rose-t));
+    }
+
+    .ok-card.anulado .ok-icon::before,
+    .ok-card.anulado .ok-icon::after,
+    .ok-card.anulado .ok-icon circle {
+      background: var(--rose);
+    }
+
+    .ok-card.anulado .ok-icon circle {
+      fill: var(--rose);
+      stroke: var(--rose-t);
+    }
+
+    .ok-card.anulado .ok-icon path {
+      stroke: var(--rose-t);
+    }
+
+    .ok-card.anulado .ok-bar i {
+      background: var(--rose-t);
+    }
+
+    @keyframes okPop {
+      0% {
+        transform: scale(.6);
+        opacity: 0;
+      }
+
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+
+    @keyframes okDraw {
+      to {
+        stroke-dashoffset: 0;
+      }
+    }
+
+    @keyframes okRing {
+      0% {
+        transform: scale(.85);
+        opacity: .6;
+      }
+
+      100% {
+        transform: scale(1.8);
+        opacity: 0;
+      }
+    }
+
+    @keyframes okUp {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: none;
+      }
+    }
+
+    @keyframes okBar {
+      from {
+        width: 100%;
+      }
+
+      to {
+        width: 0;
+      }
+    }
+
+    @keyframes okBurst {
+      0% {
+        opacity: 1;
+        transform: translate(0, 0) rotate(0);
+      }
+
+      100% {
+        opacity: 0;
+        transform: translate(var(--x), var(--y)) rotate(var(--r));
+      }
+    }
+
+    /* ==========================================================
+       7. ADMINISTRADOR: login y menú
+       ========================================================== */
+    .login-card {
+      width: 420px;
+      max-width: 94vw;
+      padding: 40px 32px 32px;
+      text-align: center;
+      animation: in .25s ease;
+    }
+
+    .login-card.shake {
+      animation: shake .4s ease;
+    }
+
+    .login-ico {
+      width: 76px;
+      height: 76px;
+      margin: 0 auto 16px;
+      border-radius: 24px;
+      background: var(--acc-soft);
+      display: grid;
+      place-content: center;
+      font-size: 34px;
+    }
+
+    .login-card h2 {
+      margin: 0 0 6px;
+      font-size: 26px;
+    }
+
+    .login-card .sub-t {
+      color: var(--mut);
+      font-size: 14px;
+      margin: 0 0 18px;
+    }
+
+    .warn {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      text-align: left;
+      background: var(--peach);
+      color: var(--peach-t);
+      border-radius: 16px;
+      padding: 14px 16px;
+      font-size: 13.5px;
+      line-height: 1.4;
+      margin-bottom: 20px;
+    }
+
+    .warn .w-ic {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    #adminPwd {
+      text-align: center;
+      font-size: 26px;
+      letter-spacing: 8px;
+      font-weight: 700;
+      padding: 16px;
+    }
+
+    .login-card .acc {
+      margin-top: 18px;
+    }
+
+    @keyframes shake {
+
+      0%,
+      100% {
+        transform: translateX(0);
+      }
+
+      20% {
+        transform: translateX(-10px);
+      }
+
+      40% {
+        transform: translateX(9px);
+      }
+
+      60% {
+        transform: translateX(-6px);
+      }
+
+      80% {
+        transform: translateX(4px);
+      }
+    }
+
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 18px;
+      width: 100%;
+      max-width: 860px;
+    }
+
+    .admin-card {
+      flex-direction: column;
+      justify-content: center;
+      text-align: center;
+      gap: 10px;
+      padding: 40px 20px;
+    }
+
+    .admin-card .e {
+      width: 72px;
+      height: 72px;
+      border-radius: 22px;
+      font-size: 34px;
+    }
+
+    .admin-card b {
+      font-size: 20px;
+    }
+
+    .admin-card small {
+      display: block;
+      margin-top: 4px;
+      font-size: 13px;
+      color: var(--mut);
+      font-weight: 400;
+    }
+
+    /* ==========================================================
+       8. PANTALLA DE CARGA (ESTADÍSTICAS)
+       ========================================================== */
+    #view-admin-stats main {
+      position: relative;
+    }
+
+    .st-loader {
+      position: absolute;
+      inset: 0;
+      background: var(--overlay);
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      backdrop-filter: blur(6px);
+      border-radius: 22px;
+      animation: in 0.2s ease;
+    }
+
+    #view-admin-stats.cargando .st-loader {
+      display: flex;
+    }
+
+    .st-spinner {
+      width: 56px;
+      height: 56px;
+      border: 6px solid rgba(255, 255, 255, 0.2);
+      border-top-color: var(--acc);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-bottom: 20px;
+    }
+
+    .st-loader h3 {
+      margin: 0;
+      font-size: 20px;
+      color: #fff;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    .st-loader p {
+      margin: 6px 0 0;
+      font-size: 14px;
+      color: #ddd;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    /* ==========================================================
+       9. MODAL DE COBRO (caja)
+       Disposición horizontal: a la izquierda los métodos de pago y
+       los botones; a la derecha (solo con Efectivo o Cuenta corriente)
+       el panel complementario, que llena toda la altura.
+       La clase .con-lado la activa app.js en seleccionarMetodo().
+       ========================================================== */
+    #mCobro .box {
+      width: 600px;
+      max-width: 96vw;
+      max-height: 96vh;
+      overflow-y: auto;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      transition: width .2s ease;
+    }
+
+    #mCobro .box.con-lado {
+      width: 1040px;
+    }
+
+    .cobro-wrap {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+      align-items: stretch;
+    }
+
+    .con-lado .cobro-wrap {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+
+    .cobro-izq {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 0;
+    }
+
+    /* Columna derecha: oculta hasta que se elige Efectivo o Cuenta corriente */
+    #colLado {
+      display: none;
+      flex-direction: column;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .con-lado #colLado {
+      display: flex;
+    }
+
+    /* El panel visible se estira hasta abajo; el vuelto queda pegado al fondo */
+    #colLado>div {
+      flex: 1;
+      min-height: 0;
+    }
+
+    #zonaMonto>div:last-child {
+      margin-top: auto !important;
+    }
+
+    /* Cuenta corriente: historial reciente y resumen de cómo quedaría la deuda */
+    .cc-hist {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .cc-h-tit {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--mut);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-top: 4px;
+    }
+
+    .cc-h-vacio {
+      padding: 18px;
+      text-align: center;
+      color: var(--mut);
+      font-size: 14px;
+    }
+
+    .cc-h-row {
+      display: grid;
+      grid-template-columns: 56px minmax(0, 1fr) auto;
+      gap: 10px;
+      align-items: center;
+      padding: 9px 12px;
+      border-radius: 12px;
+      background: var(--card);
+      font-size: 14px;
+    }
+
+    .cc-h-row .f {
+      color: var(--mut);
+      font-size: 13px;
+    }
+
+    .cc-h-row .c small {
+      display: block;
+      color: var(--mut);
+      font-size: 12px;
+    }
+
+    .cc-h-row .m {
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cc-h-row .m.mas {
+      color: var(--rose-t);
+    }
+
+    .cc-h-row .m.menos {
+      color: var(--mint-t);
+    }
+
+    .cc-resumen {
+      margin-top: auto;
+      padding-top: 14px;
+      border-top: 1px dashed var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cc-resumen>div {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 16px;
+      color: var(--mut);
+      font-weight: 600;
+    }
+
+    .cc-resumen b {
+      color: var(--txt);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cc-resumen .fin {
+      padding-top: 8px;
+      border-top: 1px solid var(--line);
+      font-size: 18px;
+    }
+
+    .cc-resumen .fin b {
+      font-size: 28px;
+      color: var(--rose-t);
+    }
+
+    .cc-resumen .fin.ok b {
+      color: var(--mint-t);
+    }
+  </style>
+
+  <!-- Estilos adicionales (hojas externas) -->
+  <link rel="stylesheet" href="/static/stats.css">
+  <link rel="stylesheet" href="/static/productos.css">
+  <link rel="stylesheet" href="/static/transiciones.css">
+  <!-- Mapa Leaflet para Empleados -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+</head>
+
+<body>
+
+  <!-- ========================================================== -->
+  <!-- VISTAS (pantallas principales) -->
+  <!-- ========================================================== -->
+
+  <!-- VISTA: HOME / MENÚ PRINCIPAL -->
+  <div id="view-home" class="view app"
+    style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:24px;">
+    <div style="position:absolute; top:20px; right:20px;">
+      <button class="theme btnTemaGlobal" title="Cambiar tema"
+        onclick="aplicarTema(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark')">🌙</button>
+    </div>
+
+    <img src="/static/logo.png" alt="Lo de Justi" style="width:clamp(150px, 26vh, 300px); height:auto; aspect-ratio:1;">
+    <h2>Seleccioná tu módulo</h2>
+
+    <div class="row2" style="width:100%; max-width:640px; gap:20px;">
+      <!-- Botón Mostrador -->
+      <button class="cta" onclick="nav('venta')" style="flex-direction:column; gap:12px; padding:40px;">
+        <span style="font-size:40px">🛒</span>
+        <span style="font-size:20px">Mostrador<small
+            style="display:block; font-size:14px; font-weight:normal; opacity:0.8; margin-top:4px;">Armar
+            Pedido</small></span>
+      </button>
+
+      <!-- Botón Caja -->
+      <button class="cta" onclick="nav('caja')"
+        style="flex-direction:column; gap:12px; padding:40px; background:var(--mint); color:var(--mint-t);">
+        <span style="font-size:40px">💰</span>
+        <span style="font-size:20px">Caja<small
+            style="display:block; font-size:14px; font-weight:normal; opacity:0.8; margin-top:4px;">Cobrar
+            Tickets</small></span>
+      </button>
+    </div>
+
+    <!-- Botón Administrador -->
+    <button class="act" onclick="pedirAdmin()"
+      style="margin-top:10px; width:100%; max-width:640px; justify-content:center;">
+      <div class="e">⚙️</div><span>Administrador<small>Requiere contraseña</small></span>
+    </button>
+  </div>
+
+
+  <!-- VISTA: MOSTRADOR -->
+  <div id="view-venta" class="view app" style="display:none;">
+    <header class="top">
+      <button onclick="nav('home')" style="padding:10px 14px">⬅ Volver</button>
+      <div class="brand"><b>Mostrador</b><small>Generador de Tickets</small></div>
+      <div class="sp"></div>
+      <div class="pill"><span class="dot dot-net"></span><span class="lbl-net">En línea</span></div>
+      <div class="pill reloj">--:--</div>
+      <button class="theme" id="btnTema" title="Cambiar tema">🌙</button>
+    </header>
+
+    <main>
+      <div class="searchwrap">
+        <span class="ic">🔍</span>
+        <input id="buscar" placeholder="Buscá un producto o escaneá el código…" autocomplete="off">
+        <kbd>F2</kbd>
+        <div class="sug" id="sug"></div>
+      </div>
+
+      <div class="lista card">
+        <div class="cols thead">
+          <span>Producto</span><span>Precio</span><span>Cantidad</span><span>Subtotal</span><span></span>
+        </div>
+        <div id="carrito"></div>
+      </div>
+
+      <div class="dock">
+        <div class="stat t card"><span class="lbl">Total</span><span class="v" id="total">$ 0</span></div>
+        <div class="stat card"><span class="lbl">Artículos</span><span class="v" id="items">0</span></div>
+        <button class="act" id="btnRapido">
+          <div class="e" style="background:var(--peach);color:var(--peach-t)">🍬</div><span>Producto
+            rápido<small>F4</small></span>
+        </button>
+        <button class="act" id="btnVaciar">
+          <div class="e" style="background:var(--rose);color:var(--rose-t)">🗑️</div><span>Vaciar carrito<small>empezar
+              de cero</small></span>
+        </button>
+        <button class="cta" id="btnTicket">🧾 Generar ticket <kbd>F9</kbd></button>
+        <button id="btnTicket2" hidden></button>
+      </div>
+    </main>
+  </div>
+
+
+  <!-- VISTA: CAJA -->
+  <div id="view-caja" class="view app" style="display:none; background:var(--bg);">
+    <header class="top">
+      <button onclick="nav('home')" style="padding:10px 14px; font-weight:600;">⬅ Volver</button>
+      <div class="brand"><b>Caja</b><small>Módulo de Cobros</small></div>
+
+      <div class="searchwrap" style="flex:1; max-width:500px; margin:0 auto;">
+        <span class="ic">🧾</span>
+        <input id="scanTicket" placeholder="Pistoleá el ticket o ingresá el #..." autocomplete="off"
+          style="font-size:16px; padding:16px 20px 16px 50px;">
+      </div>
+
+      <div class="sp"></div>
+      <div class="pill reloj">--:--</div>
+      <button class="act" onclick="cargarPendientes()" style="padding:8px 14px; margin-left:10px;"
+        title="Actualizar lista">
+        <div class="e" style="width:24px;height:24px;font-size:14px;">🔄</div>
+      </button>
+    </header>
+
+    <main style="flex-direction:column; padding: 10px 20px;">
+      <div
+        style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom: 20px; border-bottom: 2px solid var(--line); padding-bottom: 12px;">
+        <h1 style="margin:0; font-size: 24px; color:var(--txt);">Pendientes de Cobro</h1>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span
+            style="color:var(--mut); font-size:14px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">Tickets
+            en espera:</span>
+          <span id="contadorPendientes"
+            style="background:var(--acc); color:#fff; padding:4px 12px; border-radius:99px; font-weight:bold; font-size:16px;">0</span>
+        </div>
+      </div>
+
+      <div id="grid-pendientes"
+        style="display:grid; grid-template-columns:repeat(auto-fill, minmax(260px, 1fr)); gap:18px; align-content:start; width:100%; overflow-y:auto; padding-bottom:30px; flex:1;">
+        <!-- Se llena por JS -->
+      </div>
+    </main>
+  </div>
+
+
+  <!-- VISTA: ADMIN · LOGIN -->
+  <div id="view-login-admin" class="view app" style="display:none; align-items:center; justify-content:center;">
+    <div style="position:absolute; top:20px; right:20px;">
+      <button class="theme" title="Cambiar tema"
+        onclick="aplicarTema(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark')">🌙</button>
+    </div>
+
+    <div class="card login-card" id="loginCard">
+      <div class="login-ico">🔒</div>
+      <h2>Acceso restringido</h2>
+      <p class="sub-t">Ingresá la contraseña de administrador</p>
+
+      <div class="warn">
+        <span class="w-ic">⚠️</span>
+        <span><b>Módulo restringido.</b> El acceso a esta sección será notificado al administrador.</span>
+      </div>
+
+      <input id="adminPwd" type="password" placeholder="••••" autocomplete="off">
+      <div class="err" id="adminErr"></div>
+
+      <div class="acc">
+        <button onclick="nav('home')">⬅ Volver</button>
+        <button class="go" id="btnAdminEntrar" onclick="entrarAdmin()">Ingresar</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- VISTA: ADMIN · MENÚ
+       (las tarjetas de Compras y Cuentas corrientes las agregan compras.js y cuentas.js) -->
+  <div id="view-admin" class="view app" style="display:none;">
+    <header class="top">
+      <button onclick="nav('home')" style="padding:10px 14px">⬅ Salir</button>
+      <div class="brand"><b>Administración</b><small>Panel del administrador</small></div>
+      <div class="sp"></div>
+      <div class="pill reloj">--:--</div>
+      <button class="theme" title="Cambiar tema"
+        onclick="aplicarTema(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark')">🌙</button>
+    </header>
+
+    <main style="align-items:center; justify-content:center;">
+      <div class="admin-grid">
+        <button class="act admin-card" onclick="abrirSeccionAdmin('empleados')">
+          <div class="e" style="background:var(--peach);color:var(--peach-t)">👥</div>
+          <span><b>Empleados</b><small>Personal y accesos</small></span>
+        </button>
+        <button class="act admin-card" onclick="abrirSeccionAdmin('productos')">
+          <div class="e" style="background:var(--mint);color:var(--mint-t)">📦</div>
+          <span><b>Productos</b><small>Catálogo, precios y stock</small></span>
+        </button>
+        <button class="act admin-card" onclick="abrirSeccionAdmin('gastos')">
+          <div class="e" style="background:var(--rose);color:var(--rose-t)">💸</div>
+          <span><b>Gastos</b><small>Operativos y fijos</small></span>
+        </button>
+        <button class="act admin-card" onclick="abrirSeccionAdmin('stats')">
+          <div class="e" style="background:var(--acc-soft);color:var(--acc-txt)">📊</div>
+          <span><b>Estadísticas</b><small>Ventas y tiempos de cobro</small></span>
+        </button>
+      </div>
+    </main>
+  </div>
+
+
+  <!-- VISTA: ADMIN · SECCIÓN (En Construcción) -->
+  <div id="view-admin-sec" class="view app" style="display:none;">
+    <header class="top">
+      <button onclick="nav('admin')" style="padding:10px 14px">⬅ Volver</button>
+      <div class="brand"><b id="secTitulo">Sección</b><small id="secDesc"></small></div>
+      <div class="sp"></div>
+      <div class="pill reloj">--:--</div>
+      <button class="theme" title="Cambiar tema"
+        onclick="aplicarTema(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark')">🌙</button>
+    </header>
+
+    <main>
+      <div class="card" style="flex:1; display:flex; align-items:center; justify-content:center;">
+        <div class="vacio">
+          <b id="secIcono">🛠️️</b>
+          <span style="font-size:20px; font-weight:600; color:var(--txt);">En preparación</span>
+          <span>Esta sección se va a armar próximamente.</span>
+        </div>
+      </div>
+    </main>
+  </div>
+
+
+  <!-- VISTA: ADMIN · ESTADÍSTICAS -->
+  <div id="view-admin-stats" class="view app" style="display:none;">
+    <header class="top">
+      <button onclick="nav('admin')" style="padding:10px 14px">⬅ Volver</button>
+      <div class="brand"><b>Estadísticas</b><small id="stRangoTxt">Ventas del almacén</small></div>
+      <div class="sp"></div>
+      <div class="pill reloj">--:--</div>
+      <button class="theme" title="Cambiar tema"
+        onclick="aplicarTema(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark')">🌙</button>
+    </header>
+
+    <main>
+      <!-- Pantalla de carga animada (Stats) -->
+      <div class="st-loader">
+        <div class="st-spinner"></div>
+        <h3>Calculando estadísticas...</h3>
+        <p>Procesando datos en tiempo real</p>
+      </div>
+
+      <div class="st-bar">
+        <div class="chips" id="stChips">
+          <button class="chip" data-r="hoy">Hoy</button>
+          <button class="chip" data-r="7">7 días</button>
+          <button class="chip" data-r="30">30 días</button>
+          <button class="chip" data-r="mes">Este mes</button>
+          <button class="chip" data-r="anio">Este año</button>
+        </div>
+        <div class="fechas">
+          <input type="date" id="stDesde" aria-label="Desde">
+          <span>a</span>
+          <input type="date" id="stHasta" aria-label="Hasta">
+        </div>
+        <div class="sp"></div>
+        <button id="stRefrescar" style="padding:10px 16px; font-weight:600;">🔄 Actualizar</button>
+      </div>
+
+      <div class="dash" id="stDash"></div>
+    </main>
+  </div>
+
+
+  <!-- VISTA: ADMIN · GASTOS -->
+  <div id="view-admin-gastos" class="view app" style="display:none;">
+    <header class="top">
+      <button onclick="nav('admin')" style="padding:10px 14px">⬅ Volver</button>
+      <div class="brand"><b>Gastos</b><small id="gsSub">Control de egresos</small></div>
+      <div class="sp"></div>
+      <div class="pill reloj">--:--</div>
+      <button class="theme" title="Cambiar tema"
+        onclick="aplicarTema(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark')">🌙</button>
+    </header>
+
+    <main>
+      <div class="pr-bar">
+        <div class="searchwrap pr-search">
+          <span class="ic">🔍</span>
+          <input id="gsBuscar" placeholder="Buscar concepto…" autocomplete="off">
+        </div>
+        <input type="month" id="gsMes" class="pr-sel" style="width:180px">
+        <select class="pr-sel" id="gsTipo" style="width:160px">
+          <option value="">Todos los tipos</option>
+          <option value="periodico">Periódicos</option>
+          <option value="unitario">Unitarios</option>
+        </select>
+        <button class="go pr-nuevo" id="gsNuevo">＋ Registrar gasto</button>
+      </div>
+
+      <!-- TARJETA DE PREVISIÓN -->
+      <div class="card" id="gsPrevisionBox"
+        style="display:none; padding:20px; background:var(--acc-soft); border-radius:18px; margin-bottom: 14px;">
+        <!-- Se llena con JS -->
+      </div>
+
+      <div class="card pr-card" style="--cols: 110px 120px minmax(0,1fr) 140px 120px 100px">
+        <div class="pr-scroll">
+          <div class="pr-head">
+            <span>Fecha</span><span>Tipo</span><span>Concepto / Descripción</span><span
+              class="r">Monto</span><span>Categoría</span><span></span>
+          </div>
+          <div id="gsBody"></div>
+        </div>
+        <div class="pr-foot" id="gsFoot"></div>
+      </div>
+    </main>
+  </div>
+
+
+  <!-- VISTA: ADMIN · EMPLEADOS -->
+  <div id="view-admin-empleados" class="view app" style="display:none;">
+    <header class="top">
+      <button onclick="nav('admin')" style="padding:10px 14px">⬅ Volver</button>
+      <div class="brand"><b>Empleados</b><small id="empSub">Gestión de personal y turnos</small></div>
+      <div class="sp"></div>
+      <div class="pill reloj">--:--</div>
+      <button class="theme" title="Cambiar tema"
+        onclick="aplicarTema(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark')">🌙</button>
+    </header>
+
+    <main>
+      <div class="pr-bar">
+        <div class="searchwrap pr-search">
+          <span class="ic">🔍</span>
+          <input id="empBuscar" placeholder="Buscar empleado…" autocomplete="off">
+        </div>
+        <select class="pr-sel" id="empVista" style="width:160px">
+          <option value="activos">Activos</option>
+          <option value="inactivos">Inactivos</option>
+        </select>
+        <button class="go pr-nuevo" id="empNuevo">＋ Nuevo empleado</button>
+      </div>
+      <div class="card pr-card" style="--cols: minmax(0,1fr) 140px 180px 150px 100px 90px">
+        <div class="pr-scroll">
+          <div class="pr-head">
+            <span>Nombre</span><span>Teléfono</span><span>Dirección</span><span class="r">Sueldo Base</span><span
+              style="text-align:center;">Turnos</span><span></span>
+          </div>
+          <div id="empBody"></div>
+        </div>
+        <div class="pr-foot" id="empFoot"></div>
+      </div>
+    </main>
+  </div>
+
+
+  <!-- ========================================================== -->
+  <!-- MODALES GLOBALES -->
+  <!-- ========================================================== -->
+
+  <!-- MODAL: PRODUCTO RÁPIDO -->
+  <div class="modal" id="mRapido">
+    <div class="box">
+      <h2>Producto rápido</h2>
+      <p>Se agrega al carrito y queda guardado.</p>
+      <label>Nombre</label><input id="rNombre" placeholder="Ej: Caramelo de menta" autocomplete="off">
+      <div class="row2">
+        <div><label>Cantidad</label><input id="rCant" type="number" min="1" step="1" value="1"></div>
+        <div><label>Precio ($)</label><input id="rPrecio" type="number" min="0" step="1" placeholder="0"></div>
+      </div>
+      <div class="err" id="errRapido"></div>
+      <div class="acc">
+        <button id="rCerrar">Cerrar</button>
+        <button class="go" id="rGuardar">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL: COBRO INTELIGENTE
+       Layout horizontal:
+         - Arriba: número de ticket y total.
+         - Izquierda (.cobro-izq): métodos de pago y botones de acción.
+         - Derecha (#colLado): solo visible con Efectivo o Cuenta corriente
+           (calculadora de vuelto o selector de cuenta + historial).
+       app.js alterna la clase .con-lado de ".box" para ensanchar el modal. -->
+  <div class="modal" id="mCobro">
+    <div class="box">
+
+      <!-- Cabecera: ticket y total -->
+      <h2
+        style="display:flex; justify-content:space-between; align-items:center; margin:0; border-bottom:1px solid var(--line); padding-bottom:16px;">
+        <span style="font-size:24px;">Ticket <span id="cobroTkId" style="color:var(--acc-txt)">#0</span></span>
+        <span id="cobroTkTotal" style="font-size:38px;">$0</span>
+      </h2>
+
+      <div class="cobro-wrap">
+
+        <!-- ===== Columna izquierda: métodos de pago y botones ===== -->
+        <div class="cobro-izq">
+          <div style="display:flex; flex-direction:column; gap:14px;" id="metodosPago">
+            <label style="margin:0; font-size:16px;">¿Cómo paga el cliente?</label>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+              <button onclick="seleccionarMetodo('mercado_pago')" class="act"
+                style="flex-direction:column; padding:16px 10px; font-size:17px; justify-content:center; gap:6px;">
+                <span style="font-size:28px;">📱</span><span>Mercado Pago</span>
+              </button>
+              <button onclick="seleccionarMetodo('transferencia')" class="act"
+                style="flex-direction:column; padding:16px 10px; font-size:17px; justify-content:center; gap:6px;">
+                <span style="font-size:28px;">🏦</span><span>Transferencia</span>
+              </button>
+              <button onclick="seleccionarMetodo('debito')" class="act"
+                style="flex-direction:column; padding:16px 10px; font-size:17px; justify-content:center; gap:6px;">
+                <span style="font-size:28px;">💳</span><span>Débito</span>
+              </button>
+              <button onclick="seleccionarMetodo('credito')" class="act"
+                style="flex-direction:column; padding:16px 10px; font-size:17px; justify-content:center; gap:6px;">
+                <span style="font-size:28px;">💳</span><span>Crédito</span>
+              </button>
+              <button onclick="seleccionarMetodo('efectivo')" class="act"
+                style="grid-column:span 2; flex-direction:row; padding:18px; font-size:20px; justify-content:center; gap:14px; background:var(--mint); color:var(--mint-t);">
+                <span style="font-size:30px;">💵</span><b style="font-weight:700;">Efectivo</b>
+              </button>
+              <button onclick="seleccionarMetodo('cuenta_corriente')" class="act"
+                style="grid-column:span 2; flex-direction:row; padding:16px; font-size:19px; justify-content:center; gap:12px; background:var(--peach); color:var(--peach-t);">
+                <span style="font-size:26px;">📒</span><b style="font-weight:700;">Cuenta corriente</b>
+              </button>
+            </div>
+          </div>
+
+          <!-- Botones de acción -->
+          <div class="acc" style="margin-top:0; display:flex; gap:10px;">
+            <button onclick="anularCobroActivo()"
+              style="background:var(--rose); color:var(--rose-t); flex:0.6; padding:16px; font-size:17px;"
+              title="Anular este pedido">🗑️ Anular</button>
+            <button onclick="cerrar('#mCobro')" style="flex:1; padding:16px; font-size:17px;">Volver</button>
+            <button class="go" id="btnConfirmarCobro"
+              style="flex:1.5; padding:16px; font-size:17px;">✅ Confirmar</button>
+          </div>
+        </div>
+
+        <!-- ===== Columna derecha: complementos (Efectivo / Cuenta corriente) ===== -->
+        <div id="colLado">
+
+          <!-- Cuenta corriente: selector, historial reciente y cómo quedaría la deuda -->
+          <div id="zonaCuenta"
+            style="display:none; flex-direction:column; gap:12px; background:var(--input); padding:20px; border-radius:22px; animation:in .2s ease;">
+            <label style="margin:0; font-size:15px;">¿A qué cuenta se carga?</label>
+            <select id="cuentaSel"
+              style="width:100%; height:54px; border-radius:16px; background:var(--card); border:2px solid var(--line); padding:0 14px; font-size:18px; font-weight:600; font-family:inherit;"></select>
+            <div id="cuentaInfo" style="font-size:15px; color:var(--mut);"></div>
+            <div id="cuentaHist" class="cc-hist"></div>
+            <div id="cuentaResumen" class="cc-resumen"></div>
+          </div>
+
+          <!-- Efectivo: calculadora de vuelto -->
+          <div id="zonaMonto"
+            style="display:none; flex-direction:column; gap:12px; background:var(--input); padding:20px; border-radius:22px; animation:in .2s ease;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label style="margin:0; font-size:15px;">Calcular Vuelto (Opcional)</label>
+              <button class="x" onclick="$('#montoIngresado').value=''; actualizarVuelto();"
+                style="width:28px; height:28px; font-size:14px;" title="Limpiar">✕</button>
+            </div>
+            <input type="number" id="montoIngresado"
+              style="font-size:32px; font-weight:800; background:var(--card); text-align:center; padding:16px; border-radius:16px;"
+              placeholder="$ 0">
+            <div id="botonesVuelto"
+              style="display:grid; grid-template-columns:repeat(auto-fit, minmax(90px, 1fr)); gap:10px;"></div>
+            <div
+              style="margin-top:8px; padding-top:16px; border-top:1px dashed var(--line); display:flex; justify-content:space-between; align-items:center;">
+              <span style="color:var(--mut); font-weight:600; font-size:18px;">Vuelto:</span>
+              <b id="txtVuelto" style="color:var(--acc-txt); font-size:32px;">$0</b>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL: CONFIRMAR PEDIDO -->
+  <div class="modal" id="mConfirmar">
+    <div class="box" style="width:400px; text-align:center; padding:36px 24px;">
+      <div style="font-size:54px; margin-bottom:12px;">🛒</div>
+      <h2 style="margin-bottom:8px; font-size:26px;">¿Confirmar Pedido?</h2>
+      <p style="font-size:16px; color:var(--mut); margin:0;">Se generará un ticket por el total de:</p>
+      <div id="confTotal" style="font-size:46px; font-weight:900; color:var(--acc-txt); margin:16px 0 32px;">$0</div>
+      <div class="acc">
+        <button onclick="cerrar('#mConfirmar'); $('#buscar').focus();"
+          style="padding:16px; font-size:18px;">Cancelar</button>
+        <button class="go" id="btnConfirmarPedido" style="padding:16px; font-size:18px;">✅ Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL: ÉXITO (único global) -->
+  <div class="modal" id="mExito">
+    <div class="ok-card" id="exCard" onclick="cerrarExito()">
+      <div class="ok-confetti" id="exConfetti"></div>
+      <div class="ok-icon" id="exIcono"></div>
+      <h2 id="exTitulo">¡Listo!</h2>
+      <div class="ok-sub" id="exSub"></div>
+      <div class="ok-total" id="exMonto"></div>
+      <div class="ok-vuelto" id="exFila"><span id="exFilaLabel"></span><b id="exFilaValor"></b></div>
+      <div class="ok-bar" id="exBar"></div>
+    </div>
+  </div>
+
+
+  <!-- MODAL: GASTO -->
+  <div class="modal" id="mGasto">
+    <div class="box" style="width:480px">
+      <h2 id="gsTit">Registrar gasto</h2>
+      <p id="gsDesc">Mantené al día tus egresos.</p>
+      <div class="row2">
+        <div><label>Fecha</label><input type="date" id="gsFecha"></div>
+        <div>
+          <label>Monto ($)</label>
+          <input type="number" id="gsMonto" min="0" step="any" placeholder="0" autocomplete="off">
+        </div>
+      </div>
+      <label>Concepto / Descripción</label>
+      <input id="gsTexto" placeholder="Ej: Luz, Sueldo Empleado 1, Librería..." autocomplete="off">
+      <div class="row2">
+        <div>
+          <label>Categoría</label>
+          <input id="gsCat" list="gsCats" placeholder="Elegí o escribí" autocomplete="off">
+          <datalist id="gsCats"></datalist>
+        </div>
+        <div>
+          <label>Tipo de gasto</label>
+          <select id="gsSelectTipo"
+            style="width:100%; height:46px; border-radius:14px; background:var(--input); border:2px solid var(--line); padding:0 12px; font-weight:600; font-family:inherit;">
+            <option value="unitario">Una sola vez</option>
+            <option value="periodico">Periódico (Fijo)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- CAMPO DE PERIODICIDAD -->
+      <div id="gsDivPer" style="display:none; margin-top:12px;">
+        <label>Periodicidad</label>
+        <select id="gsPeriodicidad"
+          style="width:100%; height:46px; border-radius:14px; background:var(--input); border:2px solid var(--line); padding:0 12px; font-family:inherit;">
+          <option value="mensual">Mensual (x1)</option>
+          <option value="semanal">Semanal (x4)</option>
+          <option value="quincenal">Quincenal (x2)</option>
+          <option value="bimestral">Bimestral (/2)</option>
+          <option value="anual">Anual (/12)</option>
+        </select>
+      </div>
+
+      <div class="err" id="gsErr"></div>
+      <div class="acc">
+        <button id="gsCancel">Cancelar</button>
+        <button class="go" id="gsGuardar">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- MODAL: EMPLEADO (mapa arriba, pestañas de horarios abajo) -->
+  <div class="modal" id="mEmpleado">
+    <div class="box" style="width:840px; max-width:96vw; max-height:94vh; overflow-y:auto; padding:32px;">
+
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div>
+          <h2 id="empTit">Nuevo empleado</h2>
+          <p id="empDesc" style="margin-bottom:24px;">Datos personales, ubicación y asignación de turnos.</p>
+        </div>
+      </div>
+
+      <!-- PARTE SUPERIOR: DATOS Y MAPA -->
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:32px; margin-bottom:28px;">
+
+        <!-- Columna izquierda: datos -->
+        <div>
+          <label>Nombre completo</label>
+          <input id="eNombre" placeholder="Ej: Juan Pérez" autocomplete="off">
+
+          <div class="row2">
+            <div><label>Teléfono</label><input id="eTel" placeholder="221 555..." autocomplete="off"></div>
+            <div>
+              <label>Sueldo base ($) <span style="font-weight:normal; opacity:0.6;">· Opcional</span></label>
+              <input id="eSueldo" type="number" min="0" step="any" placeholder="0">
+            </div>
+          </div>
+
+          <label>Dirección (Escribí y tocá la lupa)</label>
+          <div style="display:flex; gap:8px;">
+            <input id="eDir" placeholder="Ej: Calle 50 N° 1234, Ensenada" autocomplete="off">
+            <button type="button" id="eBuscarDir" class="act"
+              style="padding:0 16px; border-radius:14px; font-size:16px;" title="Buscar en el mapa">🔍</button>
+          </div>
+        </div>
+
+        <!-- Columna derecha: mapa -->
+        <div style="display:flex; flex-direction:column;">
+          <label style="margin-top:0;">Ubicación (Tocá el mapa o buscá la dirección)</label>
+          <div
+            style="border-radius:16px; overflow:hidden; border:2px solid var(--line); flex:1; min-height:160px; position:relative;">
+            <div id="eMapa" style="width:100%; height:100%; z-index:1;"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <hr style="border:0; border-top:1px dashed var(--line); margin:0 0 24px 0;">
+
+      <!-- PARTE INFERIOR: PESTAÑAS DE HORARIOS -->
+      <div id="eHorariosBox">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <div>
+            <h3 style="margin:0; font-size:18px;">Horarios de Trabajo</h3>
+            <span style="color:var(--mut); font-size:13px;">Seleccioná un día para asignarle turnos.</span>
+          </div>
+          <button type="button" id="empCopiarLV"
+            style="padding:8px 16px; font-size:13px; background:var(--mint); color:var(--mint-t); font-weight:700; border-radius:12px; display:flex; align-items:center; gap:6px;">
+            <span style="font-size:16px;">↻</span> Repetir a Lun-Vie
+          </button>
+        </div>
+
+        <!-- Barra de días (navegación) -->
+        <div id="eDiasNav" style="display:flex; gap:10px; margin-bottom:16px; overflow-x:auto;">
+          <!-- Se renderiza por JS -->
+        </div>
+
+        <!-- Panel del día activo -->
+        <div id="eDiaPanel"
+          style="background:var(--input); border:1px solid var(--line); border-radius:20px; padding:24px;">
+          <!-- Se renderiza por JS -->
+        </div>
+      </div>
+
+      <div class="err" id="empErr" style="margin-top:16px;"></div>
+      <div class="acc" style="margin-top:16px;">
+        <button id="empCancel" style="flex: 0.5;">Cancelar</button>
+        <button class="go" id="empGuardar">Guardar Empleado</button>
+      </div>
+
+    </div>
+  </div>
+
+
+  <!-- Toast global para avisos simples -->
+  <div id="toast"></div>
+
+  <!-- ========================================================== -->
+  <!-- SCRIPTS (el orden importa: app.js define los helpers que usan los demás) -->
+  <!-- ========================================================== -->
+  <script src="/static/app.js?v=2"></script>
+  <script src="/static/productos.js?v=2"></script>
+  <script src="/static/compras.js?v=2"></script>
+  <script src="/static/arqueo.js?v=2"></script>
+  <script src="/static/ia.js?v=2"></script>
+  <script src="/static/remito_ia.js?v=1"></script>
+  <script src="/static/gastos.js?v=1"></script>
+  <script src="/static/cuentas.js?v=1"></script>
+  <script src="/static/empleados.js?v=1"></script>
+</body>
+
+</html>

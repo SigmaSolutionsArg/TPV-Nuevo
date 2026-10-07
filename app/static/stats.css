@@ -1,0 +1,135 @@
+/* ==========================================================
+   ESTADÍSTICAS: dashboard (usa las variables de index.html)
+   ========================================================== */
+#view-admin-stats main { overflow-x: hidden; overflow-y: auto; gap: 0; padding: 2px 6px 28px 2px }
+
+.st-bar { display: flex; align-items: center; gap: 12px; flex-wrap: wrap }
+.chips { display: flex; gap: 4px; background: var(--card); padding: 5px; border-radius: 99px; box-shadow: var(--shadow) }
+.chip { background: transparent; border-radius: 99px; padding: 8px 16px; font-size: 14px; font-weight: 600; color: var(--mut) }
+.chip:hover { color: var(--txt) }
+.chip.on { background: var(--acc); color: #fff }
+[data-theme="dark"] .chip.on { color: #1b1a20 }
+.fechas { display: flex; align-items: center; gap: 8px; color: var(--mut); font-size: 14px }
+.fechas input { width: auto; padding: 8px 12px; font-size: 14px; border-radius: 14px; background: var(--card) }
+
+/* Grilla de 12 columnas: cada fila suma 12 y las tarjetas de una fila miden lo mismo */
+.dash { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 14px; margin-top: 16px; transition: opacity .2s }
+#view-admin-stats.cargando .dash { opacity: .45 }
+.c4 { grid-column: span 4 } .c5 { grid-column: span 5 } .c6 { grid-column: span 6 }
+.c7 { grid-column: span 7 } .c8 { grid-column: span 8 } .c12 { grid-column: span 12 }
+@media (max-width: 1100px) { .dash > * { grid-column: span 12 } }
+
+.dc { padding: 24px 26px; min-width: 0; display: flex; flex-direction: column }
+.dh { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 18px }
+.dh h3 { margin: 0; font-size: 17px }
+.dh small { color: var(--mut); font-size: 13px }
+
+/* Chips de variación */
+.delta { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 700; white-space: nowrap; flex: none }
+.delta.up { background: var(--mint); color: var(--mint-t) }
+.delta.down { background: var(--rose); color: var(--rose-t) }
+.delta.warn { background: var(--peach); color: var(--peach-t) }
+.delta.flat { background: var(--bg); color: var(--mut) }
+
+/* Selector segmentado */
+.seg { display: flex; background: var(--bg); border-radius: 99px; padding: 3px; flex: none }
+.seg button { background: transparent; border-radius: 99px; padding: 5px 13px; font-size: 13px; font-weight: 600; color: var(--mut) }
+.seg button.on { background: var(--card); color: var(--acc-txt); box-shadow: var(--shadow) }
+
+/* Hero */
+.hero-n { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap }
+.big { font-size: 58px; font-weight: 800; letter-spacing: -2px; line-height: 1; color: var(--acc-txt); font-variant-numeric: tabular-nums }
+.unit { color: var(--mut); font-size: 15px; font-weight: 600; letter-spacing: 0 }
+.hero-sub { color: var(--mut); font-size: 13px; margin-top: 8px }
+
+/* KPIs */
+.mini { display: flex; flex-direction: column; padding: 8px 26px }
+.mrow { padding: 16px 0; border-top: 1px solid var(--line); flex: 1; display: flex; flex-direction: column; justify-content: center; min-width: 0 }
+.mrow:first-child { border-top: 0 }
+.mv { display: flex; align-items: center; justify-content: space-between; gap: 10px }
+.mrow b { font-size: 30px; font-weight: 800; letter-spacing: -.5px; font-variant-numeric: tabular-nums; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.mrow > span { color: var(--mut); font-size: 13px; margin-top: 2px }
+
+/* Gráficos SVG: el contenedor se estira y llena el espacio sobrante de la tarjeta */
+.cv { position: relative; flex: 1; min-height: 230px; margin-top: 14px }
+.cv svg { display: block; overflow: visible }
+.cv svg text { fill: var(--mut); font-size: 11px; font-variant-numeric: tabular-nums }
+.cv .gl { stroke: var(--line); stroke-dasharray: 4 4 }
+.cv .gl.base { stroke-dasharray: none }
+.cv .line { fill: none; stroke: var(--acc); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round }
+.cv .area { animation: aparecer .7s ease }
+.cv .dt { fill: var(--card); stroke: var(--acc); stroke-width: 2 }
+.cv .gd { stroke: var(--acc); stroke-width: 1.5; stroke-dasharray: 3 3 }
+.cv .gp { fill: var(--card); stroke: var(--acc); stroke-width: 3 }
+.cv .hl { fill: var(--acc-soft) }
+.cv .bar { fill: var(--acc); opacity: .5; transform-box: fill-box; transform-origin: 50% 100%; animation: crecer .6s cubic-bezier(.2, .8, .2, 1) backwards; transition: opacity .15s }
+.cv .bar.mx { opacity: 1 }
+.cv:hover .bar { opacity: .42 }
+.cv:hover .bar.mx { opacity: .6 }
+.ct { position: absolute; pointer-events: none; opacity: 0; transition: opacity .12s; z-index: 5; background: var(--txt); color: var(--card); border-radius: 12px; padding: 8px 12px; font-size: 12px; white-space: nowrap; box-shadow: 0 8px 24px rgba(0, 0, 0, .25) }
+.ct b { display: block; font-size: 13px; margin-bottom: 2px }
+.ct span { display: block; opacity: .85 }
+@keyframes crecer { from { transform: scaleY(0) } }
+@keyframes aparecer { from { opacity: 0 } }
+
+/* Categorías */
+.sbar { display: flex; gap: 3px; height: 14px; border-radius: 99px; overflow: hidden; margin-bottom: 14px; flex: none }
+.sbar i { display: block; min-width: 4px }
+.cats { display: flex; flex-direction: column; gap: 6px; flex: 1; justify-content: space-between }
+.cat { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; background: transparent; text-align: left; width: 100%; flex: 1; transition: opacity .15s, background .15s }
+.cat:hover, .cat.on { background: var(--acc-soft) }
+.cat.dim { opacity: .45 }
+.cat .sw { width: 12px; height: 12px; border-radius: 50%; flex: none }
+.cat .cn { flex: 1; min-width: 0; display: flex; flex-direction: column }
+.cat .cn b, .cat .cu b { font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums }
+.cat small, .rk small, .li small { color: var(--mut); font-size: 12px; font-weight: 500 }
+.cat .cu { display: flex; flex-direction: column; text-align: right }
+
+/* Ranking y listas */
+.rank, .lis { display: flex; flex-direction: column; gap: 8px; flex: 1; justify-content: space-between }
+.rk { position: relative; display: grid; grid-template-columns: 24px minmax(0, 1fr) auto auto; gap: 12px; align-items: center; padding: 10px 14px; border-radius: 14px; overflow: hidden; flex: 1 }
+.rk::before { content: ""; position: absolute; inset: 0 auto 0 0; width: var(--w); background: var(--acc-soft); border-radius: 14px; animation: ancho .7s cubic-bezier(.2, .8, .2, 1) }
+.rk.first::before { background: var(--peach) }
+.rk > * { position: relative }
+.rk .pos { color: var(--mut); font-weight: 700; font-size: 14px }
+.rk .nom, .li .nom { font-weight: 600; min-width: 0; display: flex; flex-direction: column; overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.rk .val, .li .val { font-weight: 700; font-variant-numeric: tabular-nums; text-align: right; display: flex; flex-direction: column }
+.li { display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: var(--bg); flex: 1 }
+.li .nom { flex: 1 }
+@keyframes ancho { from { width: 0 } }
+
+/* Mapa de calor */
+.hm { flex: 1; display: grid; gap: 4px; grid-template-rows: auto repeat(7, minmax(26px, 1fr)); min-height: 250px }
+.hm .hh, .hm .hd { font-size: 11px; color: var(--mut); display: flex; align-items: center; justify-content: center }
+.hm .hd { justify-content: flex-start; font-weight: 600 }
+.hm .hc { border-radius: 7px; transition: transform .1s }
+.hm .hc:hover { transform: scale(1.12); outline: 2px solid var(--acc) }
+
+/* Donut */
+.pay { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; flex: 1; justify-content: center }
+.donut { width: 150px; height: 150px; flex: none }
+.donut text { fill: var(--txt); font-weight: 800; font-size: 17px; text-anchor: middle }
+.donut text.s { fill: var(--mut); font-weight: 500; font-size: 10px }
+.leg { flex: 1; min-width: 150px; display: flex; flex-direction: column; gap: 12px }
+.leg div { display: flex; align-items: center; gap: 10px; font-size: 14px }
+.leg .sw { width: 11px; height: 11px; border-radius: 50%; flex: none }
+.leg .n { flex: 1 }
+.leg b { font-variant-numeric: tabular-nums }
+.leg em { font-style: normal; color: var(--mut); min-width: 38px; text-align: right }
+
+/* Pedido y tiempo de cobro */
+.tc-n { font-size: 44px; font-weight: 800; letter-spacing: -1px; color: var(--acc-txt); line-height: 1 }
+.tc-sub { color: var(--mut); font-size: 13px; margin-top: 6px }
+.tc-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 18px 0 }
+.tc-3 div { background: var(--bg); border-radius: 14px; padding: 10px 12px }
+.tc-3 b { display: block; font-size: 15px; font-variant-numeric: tabular-nums }
+.tc-3 span { font-size: 12px; color: var(--mut) }
+.rgs { flex: 1; display: flex; flex-direction: column; justify-content: space-evenly; margin-top: 14px }
+.rg { display: grid; grid-template-columns: 104px 1fr 34px; gap: 10px; align-items: center; font-size: 13px }
+.rg .tr { height: 10px; border-radius: 10px; background: var(--bg); overflow: hidden }
+.rg .tr i { display: block; height: 100%; width: var(--w); border-radius: 10px; animation: ancho .7s cubic-bezier(.2, .8, .2, 1) }
+.rg em { font-style: normal; text-align: right; font-weight: 700; font-variant-numeric: tabular-nums }
+
+.vacio-c { padding: 34px 10px; text-align: center; color: var(--mut); font-size: 14px; flex: 1; display: grid; place-content: center }
+
+@media (prefers-reduced-motion: reduce) { .cv .bar, .cv .area, .rk::before, .rg .tr i { animation: none } }
